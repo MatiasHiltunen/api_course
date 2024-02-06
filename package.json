@@ -4,9 +4,16 @@
   "description": "Examples",
   "main": "index.js",
   "scripts": {
+    "dev": "node --env-file=.env --watch --import tsx index.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "type": "module",
   "author": "Matias Hiltunen",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+  },
+  "devDependencies": {
+    "tsx": "^4.7.0",
+    "@types/node": "^20.11.14"
+  }
 }

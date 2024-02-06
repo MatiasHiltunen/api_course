@@ -1,10 +1,19 @@
 import { readFileSync } from "fs"
-import { createServer } from 'http'
+import { IncomingMessage, ServerResponse, createServer } from 'http'
+import { routeHandler, router } from "./api/router";
 
-function readToResponseStaticFile({ req, res, path, options, mimeType }) {
+type StaticFileParams = {
+    req: IncomingMessage;
+    res: ServerResponse;
+    path: string;
+    mimeType?: string;
+    encoding?: BufferEncoding
+}
+
+function readToResponseStaticFile({ req, res, path, encoding, mimeType }: StaticFileParams) {
     try {
 
-        const data = readFileSync(path, options)
+        const data = readFileSync(path, encoding)
 
         res.writeHead(200, { 
             'Content-Type': mimeType,
@@ -20,15 +29,15 @@ function readToResponseStaticFile({ req, res, path, options, mimeType }) {
     }
 }
 
-function staticFileHandler(req, res) {
+function staticFileHandler(req: IncomingMessage, res: ServerResponse, requestUrl: string) {
 
-    const url = req.url.slice(1)
+    const url = requestUrl.slice(1)
 
-    const staticFileParams = {
+    const staticFileParams: StaticFileParams = {
         req,
         res,
         path: url
-    }
+    } 
 
     if (url.endsWith('.ico')) {
         staticFileParams.mimeType = 'image/x-icon'
@@ -51,7 +60,7 @@ function staticFileHandler(req, res) {
     if (url.endsWith('.html')) {
 
         staticFileParams.mimeType = 'text/html'
-        staticFileParams.options = 'utf-8'
+        staticFileParams.encoding = 'utf-8'
         readToResponseStaticFile(staticFileParams)
         return
     }
@@ -60,14 +69,21 @@ function staticFileHandler(req, res) {
 
 
 
-function handleRequest(request, response) {
+function handleRequest(request: IncomingMessage, response: ServerResponse) {
 
-    if (request.url === '/') {
-        request.url = '/public/index.html'
+    let url = request.url ?? '';
+
+    if (url === '/') {
+        url = '/public/index.html'
     }
 
-    if (request.url.startsWith('/public/')) {
-        staticFileHandler(request, response)
+    if (url.startsWith('/public/')) {
+        staticFileHandler(request, response, url)
+        return
+    }
+
+    if(url.startsWith('/api/')){
+        routeHandler(request, response)
         return
     }
 
@@ -81,5 +97,8 @@ function handleRequest(request, response) {
 
 const server = createServer(handleRequest);
 
-server.listen(8000, 'localhost');
-console.log("Server is running on http://localhost:8000")
+const PORT = process.env.PORT || 3000;
+const HOST = process.env.HOST || 'localhost';
+
+server.listen(Number(PORT), HOST);
+console.log(`Server is running on http://${HOST}:${PORT}`)
