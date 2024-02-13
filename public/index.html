@@ -4,15 +4,49 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <style>
+
+        #dogs-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #dogs-container > div {
+            display: flex;
+            flex-direction: column;
+            gap: 1em;
+            background-color: bisque;
+            padding: 1em;
+            margin: 1em;
+            text-transform: capitalize;
+        }
+
+        #dogs-container > div > h4 {
+            margin: 0px;
+        }
+
+    </style>
 </head>
 <body>
    <!--  <img width="300" src="/public/lataus.jpeg" alt="">
     <img width="300" src="/public/doge.png" alt=""> -->
 
+    <button id="dogs-add-btn">Tallenna</button>
     <div id="dogs-container"></div>
 
     <script>
+        
+        const addButton = document.getElementById('dogs-add-btn')
+
+        addButton.addEventListener('click', ()=>{
+
+            createDog()
+        })
+
         const container = document.getElementById('dogs-container')
+
+
 
         async function fetchDogs(){
             
@@ -23,16 +57,34 @@
             return dogs
         }
 
+        async function createDog(){
+            const response = await fetch('/api/dogs', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    name: 'Pepi',
+                    age: 4,
+                    image: 'https://images.dog.ceo/breeds/pinscher-miniature/n02107312_3227.jpg'
+                })
+            })
+        }
+
         function createDogCard(dogData){
 
             const card = document.createElement('DIV')
-            const text = document.createTextNode(dogData.name)
+            const name = document.createElement('H4')
+            name.innerText = dogData.name 
+            const age = document.createElement('H4')
+            age.innerText = 'Ikä: ' + dogData.age + ' vuotta'
+
 
             const image = new Image(256,256)
 
             image.src = dogData.image            
 
-            card.append(image, text)
+            card.append(image, name, age)
 
             return card
         }

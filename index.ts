@@ -69,7 +69,7 @@ function staticFileHandler(req: IncomingMessage, res: ServerResponse, requestUrl
 
 
 
-function handleRequest(request: IncomingMessage, response: ServerResponse) {
+async function handleRequest(request: IncomingMessage, response: ServerResponse) {
 
     let url = request.url ?? '';
 
@@ -83,7 +83,7 @@ function handleRequest(request: IncomingMessage, response: ServerResponse) {
     }
 
     if(url.startsWith('/api/')){
-        routeHandler(request, response)
+        await routeHandler(request, response)
         return
     }
 

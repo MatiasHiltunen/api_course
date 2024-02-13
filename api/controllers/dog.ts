@@ -22,16 +22,16 @@ const data = [
     }
 ]
 
-export function getDogs(req: IncomingMessage, res: ServerResponse){
+export async function getDogs(req: IncomingMessage, res: ServerResponse) {
 
     res.writeHead(200, { 'Content-Type': 'application/json' })
 
     res.end(JSON.stringify(data))
 }
 
-export function getDogById(req: IncomingMessage & {params: any}, res: ServerResponse){
+export async function getDogById(req: IncomingMessage & { params: any }, res: ServerResponse) {
 
-    if(!req?.params?.id){
+    if (!req?.params?.id) {
         res.writeHead(400, { 'Content-Type': 'application/json' })
 
         res.end(JSON.stringify({
@@ -45,21 +45,48 @@ export function getDogById(req: IncomingMessage & {params: any}, res: ServerResp
 
     const dog = data.find(item => item.id === id)
 
-    if(!dog){
+    if (!dog) {
         res.writeHead(404, { 'Content-Type': 'application/json' })
 
         res.end(JSON.stringify({
             error: 'Resource you were requesting does not exist'
         }))
-        
+
         return
     }
-    
+
     res.writeHead(200, { 'Content-Type': 'application/json' })
     res.end(JSON.stringify(dog))
 }
 
-export function createDog(req: IncomingMessage, res: ServerResponse){
+export async function createDog(req: IncomingMessage, res: ServerResponse) {
 
-    console.log(req)
+
+    await new Promise((resolve, reject) => {
+
+
+        let body = ''
+
+        req.on('data', (data) => {
+
+            body += data
+
+        })
+
+        req.on('end', () => {
+
+            const newDog = JSON.parse(body)
+
+            newDog.id = Math.floor(Math.random() * 1000000)
+
+            data.push(newDog)
+
+            res.writeHead(200, { 'Content-Type': 'application/json' })
+            res.end(JSON.stringify(newDog))
+
+            resolve(null)
+        })
+
+        req.on('error', reject)
+    })
 }
