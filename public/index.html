@@ -6,8 +6,48 @@
     <title>Document</title>
 </head>
 <body>
-    <img width="300" src="/public/lataus.jpeg" alt="">
-    <img width="300" src="/public/doge.png" alt="">
+   <!--  <img width="300" src="/public/lataus.jpeg" alt="">
+    <img width="300" src="/public/doge.png" alt=""> -->
 
+    <div id="dogs-container"></div>
+
+    <script>
+        const container = document.getElementById('dogs-container')
+
+        async function fetchDogs(){
+            
+            const response = await fetch('/api/dogs')
+
+            const dogs = await response.json()
+
+            return dogs
+        }
+
+        function createDogCard(dogData){
+
+            const card = document.createElement('DIV')
+            const text = document.createTextNode(dogData.name)
+
+            const image = new Image(256,256)
+
+            image.src = dogData.image            
+
+            card.append(image, text)
+
+            return card
+        }
+
+        async function updateDogs(){
+            
+            const dogs = await fetchDogs()
+
+            const dogCards = dogs.map(createDogCard)
+
+            container.append(...dogCards)
+        }
+
+        updateDogs()
+
+    </script>
 </body>
 </html>

@@ -5,17 +5,20 @@ const data = [
     {
         id: 1,
         name: "puppe",
-        age: 2
+        age: 2,
+        image: "https://images.dog.ceo/breeds/ridgeback-rhodesian/n02087394_4147.jpg"
     },
     {
         id: 2,
         name: "rekku",
-        age: 1
+        age: 1,
+        image: "https://images.dog.ceo/breeds/ridgeback-rhodesian/n02087394_4147.jpg"
     },
     {
         id: 3,
         name: "lulu",
-        age: 12
+        age: 12,
+        image: "http://localhost:8000/public/lataus.jpeg"
     }
 ]
 
