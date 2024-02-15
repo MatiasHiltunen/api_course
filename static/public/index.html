@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="/public/favicon.ico">
     <title>Document</title>
     <style>
 
@@ -31,17 +32,39 @@
 <body>
    <!--  <img width="300" src="/public/lataus.jpeg" alt="">
     <img width="300" src="/public/doge.png" alt=""> -->
+    <form id="dogs-create-form">
+        <label for="dog-name">Nimi</label>
+        <input id="dog-name" name="name" type="text">
 
-    <button id="dogs-add-btn">Tallenna</button>
+        <label for="dog-age">Ikä</label>
+        <input id="dog-age" name="age" type="number">
+
+        <label for="dog-image-url">Kuvan osoite</label>
+        <input id="dog-image-url" name="image" type="text">
+        
+        <button id="dogs-add-btn">Tallenna</button>
+    </form>
+
     <div id="dogs-container"></div>
 
     <script>
         
-        const addButton = document.getElementById('dogs-add-btn')
+        const createForm = document.getElementById('dogs-create-form')
 
-        addButton.addEventListener('click', ()=>{
+        createForm.addEventListener('submit', (e)=>{
 
-            createDog()
+            e.preventDefault()
+
+            const formData = new FormData(e.target)
+
+            console.log(formData)
+
+
+            const data = Object.fromEntries(formData)
+
+            console.log(data)
+
+            createDog(data)
         })
 
         const container = document.getElementById('dogs-container')
@@ -57,18 +80,25 @@
             return dogs
         }
 
-        async function createDog(){
+        async function createDog(data){
             const response = await fetch('/api/dogs', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({
-                    name: 'Pepi',
-                    age: 4,
-                    image: 'https://images.dog.ceo/breeds/pinscher-miniature/n02107312_3227.jpg'
-                })
+                body: JSON.stringify(data)
             })
+
+            await updateDogs()
+        }
+
+        async function deleteDog(data){
+
+            const response = await fetch('/api/dogs/' + data.id, {
+                method: 'DELETE',
+            })
+
+            await updateDogs()
         }
 
         function createDogCard(dogData){
@@ -79,12 +109,17 @@
             const age = document.createElement('H4')
             age.innerText = 'Ikä: ' + dogData.age + ' vuotta'
 
+            const button = document.createElement('BUTTON')
+
+            button.innerText = 'poista'
+
+            button.addEventListener('click', ()=>deleteDog(dogData))
 
             const image = new Image(256,256)
 
             image.src = dogData.image            
 
-            card.append(image, name, age)
+            card.append(image, name, age, button)
 
             return card
         }
@@ -95,7 +130,7 @@
 
             const dogCards = dogs.map(createDogCard)
 
-            container.append(...dogCards)
+            container.replaceChildren(...dogCards)
         }
 
         updateDogs()

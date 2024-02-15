@@ -1,7 +1,9 @@
-import { IncomingMessage, ServerResponse } from "http"
+import { ServerResponse } from "http"
+import { ServerRequest } from "../../lib/utils"
+import { createOne, read, readToArray } from "../../database/jsonDb"
 
 // Database simulation
-const data = [
+let data = [
     {
         id: 1,
         name: "puppe",
@@ -22,14 +24,26 @@ const data = [
     }
 ]
 
-export async function getDogs(req: IncomingMessage, res: ServerResponse) {
+export async function getDogs(req: ServerRequest, res: ServerResponse) {
 
-    res.writeHead(200, { 'Content-Type': 'application/json' })
+    try {
 
-    res.end(JSON.stringify(data))
+        
+        const dogs = await readToArray('dogs')
+
+        res.writeHead(200, { 'Content-Type': 'application/json' })
+        
+        res.end(JSON.stringify(dogs))
+    } catch(err) {
+        res.writeHead(404, { 'Content-Type': 'application/json' })
+        
+        res.end(JSON.stringify({
+            error: 'No dogs here, sorry ;('
+        }))
+    }
 }
 
-export async function getDogById(req: IncomingMessage & { params: any }, res: ServerResponse) {
+export async function getDogById(req: ServerRequest, res: ServerResponse) {
 
     if (!req?.params?.id) {
         res.writeHead(400, { 'Content-Type': 'application/json' })
@@ -59,34 +73,35 @@ export async function getDogById(req: IncomingMessage & { params: any }, res: Se
     res.end(JSON.stringify(dog))
 }
 
-export async function createDog(req: IncomingMessage, res: ServerResponse) {
+export async function createDog(req: ServerRequest, res: ServerResponse) {
 
+    const newDog = req.body
 
-    await new Promise((resolve, reject) => {
+    const id = await createOne('dogs', newDog)
 
+    res.writeHead(200, { 'Content-Type': 'application/json' })
+    res.end(JSON.stringify({id}))
 
-        let body = ''
+}
 
-        req.on('data', (data) => {
+export async function deleteDog(req: ServerRequest, res: ServerResponse) {
+    
 
-            body += data
+    if (!req?.params?.id) {
+        res.writeHead(400, { 'Content-Type': 'application/json' })
 
-        })
+        res.end(JSON.stringify({
+            error: 'required path parameter missing.'
+        }))
 
-        req.on('end', () => {
+        return
+    }
 
-            const newDog = JSON.parse(body)
+    const id = Number(req.params.id)
 
-            newDog.id = Math.floor(Math.random() * 1000000)
+    data = data.filter(item => item.id !== id)
 
-            data.push(newDog)
+    res.writeHead(200, { 'Content-Type': 'application/json' })
+    res.end()
 
-            res.writeHead(200, { 'Content-Type': 'application/json' })
-            res.end(JSON.stringify(newDog))
-
-            resolve(null)
-        })
-
-        req.on('error', reject)
-    })
 }
