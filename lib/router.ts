@@ -1,7 +1,7 @@
 import { IncomingMessage, ServerResponse } from "http"
-import { JSONBodyParser, Router, ServerRequest } from "./utils"
+import { JSONBodyParser, NodeResponse, Router, ServerRequest } from "./utils"
 
-export async function routeHandler(router: Router, req: IncomingMessage, res: ServerResponse) {
+export async function routeHandler(router: Router, req: IncomingMessage, res: NodeResponse) {
 
     if (!req.url) {
       return

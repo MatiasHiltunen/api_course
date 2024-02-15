@@ -39,12 +39,12 @@ export async function readOne(table: string, key: string) {
     return data[key]
 }
 
-export async function readToArray(table: string) {
+export async function readToArray<T>(table: string) {
     
 
     const data = await read(table)
 
-    return Object.values(data)
+    return Object.values(data) as T[]
 }
 
 export async function update(table: string, key: string, data: any) {

@@ -2,7 +2,7 @@ import { IncomingMessage, ServerResponse } from "http"
 
 export type ServerRequest = IncomingMessage & { params?: any, body?: any }
 
-export type Controller = (req: ServerRequest, res: ServerResponse) => Promise<any>
+export type Controller = (req: ServerRequest, res: NodeResponse) => Promise<any>
 
 export type Route = {
     method: string,
@@ -80,4 +80,47 @@ export function createRouter(): Router {
         },
     }  
 
+}
+
+export class NodeResponse {
+
+  res: ServerResponse
+  headers: Record<string, string>
+
+  constructor(res: ServerResponse){
+
+    this.res = res
+
+  }
+
+  setHeader(header: Record<string, string>){
+    this.headers = {...this.headers, ...header}
+  }
+
+  sendJson(data: any, status: number = 200){
+
+    this.setHeader({'Content-Type': 'application/json'})
+
+    this.res.writeHead(status, this.headers)
+
+    this.res.end(JSON.stringify(data))
+  }
+
+  send(data: any, status: number = 200){
+    this.res.writeHead(status, this.headers)
+
+    this.res.end(data)
+  }
+
+  error(message: string | Error, status: number = 500){
+
+    this.sendJson({
+        error: message.toString()
+    }, status)
+  }
+
+  ok(){
+    this.res.writeHead(200)
+    this.res.end()
+  }
 }

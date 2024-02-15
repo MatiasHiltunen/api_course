@@ -1,107 +1,54 @@
-import { ServerResponse } from "http"
-import { ServerRequest } from "../../lib/utils"
-import { createOne, read, readToArray } from "../../database/jsonDb"
 
-// Database simulation
-let data = [
-    {
-        id: 1,
-        name: "puppe",
-        age: 2,
-        image: "https://images.dog.ceo/breeds/ridgeback-rhodesian/n02087394_4147.jpg"
-    },
-    {
-        id: 2,
-        name: "rekku",
-        age: 1,
-        image: "https://images.dog.ceo/breeds/ridgeback-rhodesian/n02087394_4147.jpg"
-    },
-    {
-        id: 3,
-        name: "lulu",
-        age: 12,
-        image: "http://localhost:8000/public/lataus.jpeg"
-    }
-]
+import { NodeResponse, ServerRequest } from "../../lib/utils"
+import { dogService } from "../services/dog"
 
-export async function getDogs(req: ServerRequest, res: ServerResponse) {
+export async function getDogs(req: ServerRequest, res: NodeResponse) {
 
-    try {
+        const [dogs, error] = await dogService.getDogs()
 
-        
-        const dogs = await readToArray('dogs')
+        if(error){
+            res.error('No dogs here, sorry ;(', 404)
+            return
+        }
 
-        res.writeHead(200, { 'Content-Type': 'application/json' })
-        
-        res.end(JSON.stringify(dogs))
-    } catch(err) {
-        res.writeHead(404, { 'Content-Type': 'application/json' })
-        
-        res.end(JSON.stringify({
-            error: 'No dogs here, sorry ;('
-        }))
-    }
+        res.sendJson(dogs)
 }
 
-export async function getDogById(req: ServerRequest, res: ServerResponse) {
+export async function getDogById(req: ServerRequest, res: NodeResponse) {
 
     if (!req?.params?.id) {
-        res.writeHead(400, { 'Content-Type': 'application/json' })
-
-        res.end(JSON.stringify({
-            error: 'required path parameter missing.'
-        }))
-
-        return
+        return res.error('Required path parameter id is missing.', 400)
     }
 
-    const id = Number(req.params.id)
+    const [dog, error] = await dogService.getDogById(req.params.id);
 
-    const dog = data.find(item => item.id === id)
-
-    if (!dog) {
-        res.writeHead(404, { 'Content-Type': 'application/json' })
-
-        res.end(JSON.stringify({
-            error: 'Resource you were requesting does not exist'
-        }))
-
-        return
+    if (error) {
+        return res.error('Resource you were requesting does not exist', 404)
     }
 
-    res.writeHead(200, { 'Content-Type': 'application/json' })
-    res.end(JSON.stringify(dog))
+    res.sendJson(dog)
 }
 
-export async function createDog(req: ServerRequest, res: ServerResponse) {
+export async function createDog(req: ServerRequest, res: NodeResponse) {
 
     const newDog = req.body
 
-    const id = await createOne('dogs', newDog)
+    const [id, error] = await dogService.createDog(newDog)
 
-    res.writeHead(200, { 'Content-Type': 'application/json' })
-    res.end(JSON.stringify({id}))
-
-}
-
-export async function deleteDog(req: ServerRequest, res: ServerResponse) {
-    
-
-    if (!req?.params?.id) {
-        res.writeHead(400, { 'Content-Type': 'application/json' })
-
-        res.end(JSON.stringify({
-            error: 'required path parameter missing.'
-        }))
-
-        return
+    if(error){
+        res.error('Resource you were requesting does not exist', 404)
     }
 
-    const id = Number(req.params.id)
+    res.sendJson({id})
+}
 
-    data = data.filter(item => item.id !== id)
+export async function deleteDog(req: ServerRequest, res: NodeResponse) {
+    
+    const error = await dogService.deleteDog(req.params.id)
+    
+    if(error){
+       return res.error('Resource you were requesting does not exist', 404)
+    }
 
-    res.writeHead(200, { 'Content-Type': 'application/json' })
-    res.end()
-
+    res.ok()
 }
