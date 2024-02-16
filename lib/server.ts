@@ -32,7 +32,7 @@ async function readDirectoryRecursively(dirPath: string, filesMap: Map<string, B
             await readDirectoryRecursively(fullPath, filesMap) 
         } else {
 
-            const encoding: BufferEncoding = ['.html', '.png', '.jpg', '.jpeg', '.ico', '.js'].includes(path.parse(fullPath).ext) ? null: 'utf-8'
+            const encoding = ['.png', '.jpg', '.jpeg', '.ico'].includes(path.parse(fullPath).ext) ? null: 'utf-8'
             const fileContents = await readFile(fullPath, encoding);
             
             filesMap.set(fullPath.split(path.sep).join("\\"), gzipSync(fileContents))
