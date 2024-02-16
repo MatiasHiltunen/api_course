@@ -32,7 +32,7 @@ async function readDirectoryRecursively(dirPath: string, filesMap: Map<string, B
             await readDirectoryRecursively(fullPath, filesMap) 
         } else {
 
-            const encoding = ['.png', '.jpg', '.jpeg', '.ico', '.html'].includes(path.parse(fullPath).ext) ? null: 'utf-8'
+            const encoding = ['.png', '.jpg', '.jpeg', '.ico', '.html'].includes(path.parse(fullPath).ext) ? undefined : 'utf-8'
             const fileContents = await readFile(fullPath, encoding);
             
             filesMap.set(fullPath.split(path.sep).join("\\"), gzipSync(fileContents))
@@ -55,9 +55,11 @@ export async function createNodeServer(config: NodeServerConfig) {
    /*  const staticFiles = await readDirectoryRecursively(staticFolderBasePath) */
    const staticFiles = await readAndCompressStaticFilesToMap(staticFolderBasePath)
 
+    console.log(staticFiles.keys())
 
     function readToResponseStaticFile({ res, filePath, encoding, mimeType }: StaticFileParams) {
         try {
+            console.log(filePath)
             const data = staticFiles.get(filePath)
 
             res.setHeader({
@@ -71,7 +73,7 @@ export async function createNodeServer(config: NodeServerConfig) {
 
         } catch (err) {
 
-            res.error('Uh oh, nothing here.', 404)
+            res.error('Uh oh, nothing here.' + err.toString(), 404)
 
         }
     }
