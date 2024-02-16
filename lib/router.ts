@@ -1,4 +1,4 @@
-import { IncomingMessage, ServerResponse } from "http"
+import { IncomingMessage } from "http"
 import { HTTPMethods, JSONBodyParser, NodeResponse, Router, ServerRequest } from "./utils"
 
 export async function routeHandler(router: Router, req: IncomingMessage, res: NodeResponse) {
@@ -6,7 +6,6 @@ export async function routeHandler(router: Router, req: IncomingMessage, res: No
   if (!req.url) {
     return
   }
-
   const method = req.method
 
   if (!method) {
@@ -21,7 +20,7 @@ export async function routeHandler(router: Router, req: IncomingMessage, res: No
 
       const request: any = req
 
-      if (route.method === HTTPMethods.post || route.method === HTTPMethods.put || route.method === HTTPMethods.patch) {
+      if (method === HTTPMethods.post || method === HTTPMethods.put || method === HTTPMethods.patch) {
         request.body = await JSONBodyParser(req)
       }
 

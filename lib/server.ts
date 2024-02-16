@@ -69,20 +69,20 @@ export async function createNodeServer(config: NodeServerConfig) {
 
         } catch (err) {
 
+            console.log(err)
             res.error('Uh oh, nothing here.', 404)
 
         }
     }
 
-    function staticFileHandler(req: IncomingMessage, res: NodeResponse, requestUrl: string) {
+    function staticFileHandler(req: IncomingMessage, res: NodeResponse, url: string) {
 
 
-        const url = requestUrl.slice(1)
 
         const staticFileParams: StaticFileParams = {
             req,
             res,
-            filePath: staticFolderBasePath + '/' + url,
+            filePath: staticFolderBasePath + url,
             mimeType: 'application/json'
         }
 
@@ -121,7 +121,7 @@ export async function createNodeServer(config: NodeServerConfig) {
 
         const res = new NodeResponse(response)
 
-        let url = request.url ?? '';
+        let url = request.url!;
 
         if (url === '/') {
             url = '/public/index.html'

@@ -57,6 +57,7 @@ export async function JSONBodyParser(req: ServerRequest) {
         req.on('error', reject)
     })
 
+    console.log(body)
     return body
 }
 
