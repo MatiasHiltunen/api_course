@@ -1,7 +1,9 @@
-import { PathLike, readFileSync } from "fs";
+import { readFile, readdir } from "fs/promises";
+import { PathLike } from "fs";
 import { IncomingMessage, ServerResponse, createServer } from "http";
 import { NodeResponse, Router } from "./utils";
 import { routeHandler } from "./router";
+import {gzipSync} from 'zlib'
 import path from "path";
 
 type StaticFileParams = {
@@ -19,30 +21,61 @@ interface NodeServerConfig {
     static: PathLike
 }
 
-export function createNodeServer(config: NodeServerConfig) {
+async function readDirectoryRecursively(dirPath: string, filesMap: Map<string, Buffer>) {
+
+
+    const directoryContents = await readdir(dirPath, { withFileTypes: true });
     
+    await Promise.all(directoryContents.map(async (dirent) => {
+        const fullPath = path.join(dirPath, dirent.name);
+        if (dirent.isDirectory()) {
+            await readDirectoryRecursively(fullPath, filesMap) 
+        } else {
+
+            const encoding: BufferEncoding = ['.html', '.png', '.jpg', '.jpeg', '.ico', '.js'].includes(path.parse(fullPath).ext) ? null: 'utf-8'
+            const fileContents = await readFile(fullPath, encoding);
+            
+            filesMap.set(fullPath.split(path.sep).join("\\"), gzipSync(fileContents))
+        }
+    }));
+
+}
+
+async function readAndCompressStaticFilesToMap(publicPath: string) {
+    const filesMap: Map<string, Buffer> = new Map()
+    
+    await readDirectoryRecursively(publicPath, filesMap)
+
+    return filesMap
+}
+
+export async function createNodeServer(config: NodeServerConfig) {
+
     const staticFolderBasePath = config.static.toString()
-    
+   /*  const staticFiles = await readDirectoryRecursively(staticFolderBasePath) */
+   const staticFiles = await readAndCompressStaticFilesToMap(staticFolderBasePath)
+
+
     function readToResponseStaticFile({ res, filePath, encoding, mimeType }: StaticFileParams) {
         try {
-            const data = readFileSync(path.join(staticFolderBasePath, filePath), encoding)
-    
+            const data = staticFiles.get(filePath)
+
             res.setHeader({
+                'Content-Length': data!.byteLength.toString(),
                 'Content-Type': mimeType,
+                'Content-Encoding': 'gzip',
                 'Cache-Control': 'max-age=604800'
             })
-    
+
             res.send(data, 200)
-    
+
         } catch (err) {
-    
-            res.sendJson({
-                error: 'Uh oh, nothing here. Does the resource you\'re looking for exist?',
-            }, 404)
-    
+
+            res.error('Uh oh, nothing here.', 404)
+
         }
     }
-    
+
     function staticFileHandler(req: IncomingMessage, res: NodeResponse, requestUrl: string) {
 
 
@@ -51,7 +84,7 @@ export function createNodeServer(config: NodeServerConfig) {
         const staticFileParams: StaticFileParams = {
             req,
             res,
-            filePath: url,
+            filePath: path.join(staticFolderBasePath, url),
             mimeType: 'application/json'
         }
 
@@ -61,11 +94,13 @@ export function createNodeServer(config: NodeServerConfig) {
             return
         }
 
-        if (url.endsWith('.jpg') || url.endsWith('.jpeg') || url.endsWith('.png')) {
+        if (url.endsWith('.jpg') || url.endsWith('.jpeg')) {
             staticFileParams.mimeType = 'image/jpg'
             readToResponseStaticFile(staticFileParams)
             return
         }
+
+
 
         if (url.endsWith('.png')) {
             staticFileParams.mimeType = 'image/png'
@@ -115,4 +150,8 @@ export function createNodeServer(config: NodeServerConfig) {
     server.listen(Number(config.port), config.host);
     console.log(`Server is running on http://${config.host}:${config.port}`)
 
+
+   
+   
 }
+

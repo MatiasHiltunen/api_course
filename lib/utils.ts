@@ -5,13 +5,20 @@ export type ServerRequest = IncomingMessage & { params?: any, body?: any }
 export type Controller = (req: ServerRequest, res: NodeResponse) => Promise<any>
 
 export type Route = {
-    method: string,
     path: string,
     controller: Controller
 }
 
+export enum HTTPMethods { 
+    get = "GET",
+    post = "POST",
+    put = "PUT",
+    patch = "PATCH",
+    delete = "DELETE" 
+}
+
 export interface Router {
-    readonly routes: Route[];
+    readonly routes: Routes;
     readonly get: (path: string, controller: Controller) => void;
     readonly post: (path: string, controller: Controller) => void;
     readonly put: (path: string, controller: Controller) => void;
@@ -19,10 +26,9 @@ export interface Router {
     readonly delete: (path: string, controller: Controller) => void;
 }
 
-function createRoute(method: string, path: string, controller: Controller): Route {
+function createRoute(path: string, controller: Controller): Route {
 
     return {
-        method,
         path,
         controller
     }
@@ -55,28 +61,43 @@ export async function JSONBodyParser(req: ServerRequest) {
 }
 
 
+
+type Routes = {
+    [HTTPMethods.get]: Route[],
+    [HTTPMethods.post]: Route[],
+    [HTTPMethods.put]: Route[],
+    [HTTPMethods.patch]: Route[],
+    [HTTPMethods.delete]: Route[],
+}
+
 export function createRouter(): Router {
     return {
-        routes: [] as Route[],
+        routes: {
+            [HTTPMethods.get]: [],
+            [HTTPMethods.post]: [],
+            [HTTPMethods.put]: [],
+            [HTTPMethods.patch]: [],
+            [HTTPMethods.delete]: [],
+        },
         get(path: string, controller: Controller) {
-            const route = createRoute('GET', path, controller)
-            this.routes.push(route)
+            const route = createRoute( path, controller)
+            this.routes[HTTPMethods.get].push(route)
         },
         post(path: string, controller: Controller) {
-            const route = createRoute('POST', path, controller)
-            this.routes.push(route)
+            const route = createRoute( path, controller)
+            this.routes[HTTPMethods.post].push(route)
         },
         put(path: string, controller: Controller) {
-            const route = createRoute('PUT', path, controller)
-            this.routes.push(route)
+            const route = createRoute( path, controller)
+            this.routes[HTTPMethods.put].push(route)
         },
         patch(path: string, controller: Controller) {
-            const route = createRoute('PATCH', path, controller)
-            this.routes.push(route)
+            const route = createRoute( path, controller)
+            this.routes[HTTPMethods.patch].push(route)
         },
         delete(path: string, controller: Controller) {
-            const route = createRoute('DELETE', path, controller)
-            this.routes.push(route)
+            const route = createRoute( path, controller)
+            this.routes[HTTPMethods.delete].push(route)
         },
     }  
 
