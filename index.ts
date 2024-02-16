@@ -8,7 +8,7 @@ createNodeServer({
     host: HOST,
     port: PORT,
     router: router,
-    static: './static'
+    static: 'static'
 })
 
 

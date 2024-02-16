@@ -11,7 +11,6 @@ type StaticFileParams = {
     res: NodeResponse;
     filePath: string;
     mimeType: string;
-    encoding?: BufferEncoding
 }
 
 interface NodeServerConfig {
@@ -32,10 +31,10 @@ async function readDirectoryRecursively(dirPath: string, filesMap: Map<string, B
             await readDirectoryRecursively(fullPath, filesMap) 
         } else {
 
-            const encoding = ['.png', '.jpg', '.jpeg', '.ico', '.html'].includes(path.parse(fullPath).ext) ? undefined : 'utf-8'
+            const encoding: BufferEncoding | undefined = ['.png', '.jpg', '.jpeg', '.ico'].includes(path.parse(fullPath).ext) ? undefined : 'utf-8'
             const fileContents = await readFile(fullPath, encoding);
             
-            filesMap.set(fullPath.split(path.sep).join("\\"), gzipSync(fileContents))
+            filesMap.set(fullPath.split(path.sep).join("/"), gzipSync(fileContents))
         }
     }));
 
@@ -55,25 +54,22 @@ export async function createNodeServer(config: NodeServerConfig) {
    /*  const staticFiles = await readDirectoryRecursively(staticFolderBasePath) */
    const staticFiles = await readAndCompressStaticFilesToMap(staticFolderBasePath)
 
-    console.log(staticFiles.keys())
-
-    function readToResponseStaticFile({ res, filePath, encoding, mimeType }: StaticFileParams) {
+    function readToResponseStaticFile({ res, filePath, mimeType }: StaticFileParams) {
         try {
-            console.log(filePath)
             const data = staticFiles.get(filePath)
 
             res.setHeader({
                 'Content-Length': data!.byteLength.toString(),
                 'Content-Type': mimeType,
                 'Content-Encoding': 'gzip',
-                'Cache-Control': 'max-age=604800'
+              /*   'Cache-Control': 'max-age=604800' */
             })
 
             res.send(data, 200)
 
         } catch (err) {
 
-            res.error('Uh oh, nothing here.' + err.toString(), 404)
+            res.error('Uh oh, nothing here.', 404)
 
         }
     }
@@ -86,7 +82,7 @@ export async function createNodeServer(config: NodeServerConfig) {
         const staticFileParams: StaticFileParams = {
             req,
             res,
-            filePath: path.join(staticFolderBasePath, url),
+            filePath: staticFolderBasePath + '/' + url,
             mimeType: 'application/json'
         }
 
@@ -113,7 +109,6 @@ export async function createNodeServer(config: NodeServerConfig) {
         if (url.endsWith('.html')) {
 
             staticFileParams.mimeType = 'text/html'
-            staticFileParams.encoding = 'utf-8'
             readToResponseStaticFile(staticFileParams)
             return
         }
