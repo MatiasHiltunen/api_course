@@ -36,7 +36,7 @@ export async function createDog(req: ServerRequest, res: NodeResponse) {
     const [id, error] = await dogService.createDog(newDog)
 
     if(error){
-        res.error('Resource you were requesting does not exist', 404)
+        return res.error('Could not add dog due to error: ' + error, 404)
     }
 
     res.sendJson({id})
