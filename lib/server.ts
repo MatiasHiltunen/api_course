@@ -76,9 +76,16 @@ export async function createNodeServer(config: NodeServerConfig) {
                 }
             })
 
+            const contentType = mimeTypeForFileExtension(ext as MimeType)
+
+            if(!contentType){
+                
+                return res.error('Unsupported file extension', 400)
+            }
+
             res.setHeader({
                 'Content-Length': buffer.byteLength.toString(),
-                'Content-Type': mimeTypeForFileExtension(ext as MimeType),
+                'Content-Type': contentType,
                 'Content-Encoding': 'gzip',
                 /*   'Cache-Control': 'max-age=604800' */
             })

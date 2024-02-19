@@ -19,6 +19,10 @@ export const supportedMimeTypes = {
         "ext": ".jpg",
         "mimetype": "image/jpeg"
     },
+    "jpeg": {
+        "ext": ".jpeg",
+        "mimetype": "image/jpeg"
+    },
     "png": {
         "ext": ".png",
         "mimetype": "image/png"
@@ -67,7 +71,7 @@ export function mimeTypeForFileExtension(format: MimeType) {
     const mimeType = supportedMimeTypes[format]
     
     if(!mimeType){
-        throw new Error("Unsupported file extension")
+        return null
     }
 
     return mimeType.mimetype
