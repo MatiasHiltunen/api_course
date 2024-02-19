@@ -1,23 +1,23 @@
-import { createOne, readOne, readToArray, remove, update } from "../../database/jsonDb";
+import { createOne, readOne, readToArray, remove, update } from "../database/jsonDb";
 import { Dog, DogCreate, tableDogs } from "../models/dog";
 
-type Option<T> = [T | null, any]
 
-async function getDogs(): Promise<Option<Dog[]>> {
+
+async function getDogs() {
     try {
         const dogs = await readToArray<Dog>(tableDogs)
         
-        return [dogs, null] 
+        return [dogs] 
     } catch(err){
         return [null, err] 
     }
 }
 
-async function getDogById(id: string): Promise<Option<Dog>>{
+async function getDogById(id: string){
     try {
         const dog = await readOne(tableDogs, id)
         
-        return [dog, null]
+        return [dog]
     } catch(err){
         return [null, err]
     }
@@ -28,7 +28,7 @@ async function createDog(data: DogCreate) {
     try {
         const key = await createOne(tableDogs, data)
         
-        return [key, null]
+        return [key]
     } catch(err){
         return [null, err]
     }

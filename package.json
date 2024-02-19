@@ -2,19 +2,19 @@
   "name": "node-app",
   "version": "1.0.0",
   "description": "Examples",
-  "main": "index.js",
+  "main": "./src/index.js",
   "scripts": {
-    "dev": "node --env-file=.env --watch --import tsx index.ts",
-    "start": "node --import tsx index.ts",
+    "dev": "node --env-file=.env --watch --import tsx ./src/index.ts",
+    "start": "node --import tsx ./src/index.ts",
+    "build": "pkgroll",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "type": "module",
   "author": "Matias Hiltunen",
   "license": "ISC",
-  "dependencies": {
-  },
   "devDependencies": {
-    "tsx": "^4.7.0",
-    "@types/node": "^20.11.14"
+    "@types/node": "^20.11.14",
+    "pkgroll": "^2.0.1",
+    "tsx": "^4.7.0"
   }
 }

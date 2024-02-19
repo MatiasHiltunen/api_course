@@ -56,8 +56,6 @@ export async function JSONBodyParser(req: ServerRequest) {
 
         req.on('error', reject)
     })
-
-    console.log(body)
     return body
 }
 
@@ -126,6 +124,12 @@ export class NodeResponse {
     this.res.writeHead(status, this.headers)
 
     this.res.end(JSON.stringify(data))
+  }
+
+  stream(stream: Readable, status: number = 200){
+    this.res.writeHead(status, this.headers)
+
+    stream.pipe(this.res)
   }
 
   send(data: any, status: number = 200){
