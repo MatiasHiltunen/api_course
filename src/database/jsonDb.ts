@@ -1,106 +1,100 @@
 import { randomUUID } from "crypto";
 import { existsSync } from "fs";
-import { mkdir, readFile, writeFile, } from "fs/promises";
+import { mkdir, readFile, writeFile, open } from "fs/promises";
 import path from "path";
 
 
 
 export async function initDb(config = {
-    folder: '.data',
-    tables: [
-        {
-            name: 'dogs'
-        }
-    ]
+  folder: '.data',
+  tables: [
+    {
+      name: 'dogs'
+    }
+  ]
 }) {
 
-    try {
+  try {
 
 
-        if (!existsSync(config.folder)) {
-            await mkdir(config.folder)
-        }
-
-        await Promise.all(config.tables.map(table => {
-
-            const tablePath = path.join(config.folder, table.name)
-            if (!existsSync(tablePath)) {
-                return mkdir(path.join(config.folder, table.name))
-            }
-
-            return Promise.resolve()
-        }))
-    } catch (err) {
-        console.log(err)
-        throw new Error("Error initializing database.")
+    if (!existsSync(config.folder)) {
+      await mkdir(config.folder)
     }
+
+  } catch (err) {
+    console.log(err)
+    throw new Error("Error initializing database.")
+  }
 }
 
-export async function save(table: string, key: string, data: string) {
-
-
-
-    await writeFile(path.join(table, key, '.json'), JSON.stringify(data))
+export async function save(table: string, data: string) {
+  await writeFile('./.data/' + table + '.json', JSON.stringify(data))
 }
 
 export async function createOne(table: string, data: any) {
 
-    const key = randomUUID()
+  const key = randomUUID()
 
 
-    const fileData = await read(table)
+  const fileData = await read(table)
 
-    data.id = key
+  data.id = key
 
-    fileData[key] = data
+  fileData[key] = data
 
-    await save(table, key, fileData)
+  await save(table, fileData)
 
-    return key
+  return key
 
 
 }
 
-export async function read(key: string) {
+export async function read(table: string) {
 
-    const data = await readFile(key + '.json', 'utf-8')
-
+  try {
+    const data = await readFile('./.data/' + table + '.json', 'utf-8')
+  
     return JSON.parse(data)
+
+  } catch (err) {
+
+    return {}
+  }
 
 }
 
 export async function readOne(table: string, key: string) {
-    const data = await read(key)
+  const data = await read(table)
 
-    return data[key]
+  return data[key]
 }
 
 export async function readToArray<T>(table: string) {
 
 
-    const data = await read(table)
+  const data = await read(table)
 
-    return Object.values(data) as T[]
+  return Object.values(data) as T[]
 }
 
 export async function update(table: string, key: string, data: any) {
 
-    const fileData = await read(table)
+  const fileData = await read(table)
 
-    fileData[key] = data
+  fileData[key] = data
 
-    await save(table, fileData)
+  await save(table, fileData)
 
 }
 
 
 export async function remove(table: string, key: string) {
 
-    const fileData = await read(table)
+  const fileData = await read(table)
 
-    delete fileData[key]
+  delete fileData[key]
 
-    await save(table, fileData)
+  await save(table, fileData)
 }
 
 

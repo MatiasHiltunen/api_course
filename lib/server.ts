@@ -4,9 +4,9 @@ import { IncomingMessage, ServerResponse, createServer } from "http";
 import { NodeResponse, Router } from "./utils";
 import { routeHandler } from "./router";
 import { gzipSync } from 'zlib'
-import {mimeTypeForFileExtension} from './mimetypes'
+import { mimeTypeForFileExtension, MimeType } from './mimetypes'
 import path from "path";
-import {Readable} from 'stream'
+import { Readable } from 'stream'
 
 
 
@@ -18,7 +18,7 @@ interface NodeServerConfig {
     static: PathLike
 }
 
-async function readDirectoryRecursively(dirPath: string, virtualPath, filesMap: Map<string, Buffer>) {
+async function readDirectoryRecursively(dirPath: string, virtualPath: string, filesMap: Map<string, Buffer>) {
 
 
     const directoryContents = await readdir(dirPath, { withFileTypes: true });
@@ -27,7 +27,7 @@ async function readDirectoryRecursively(dirPath: string, virtualPath, filesMap: 
     await Promise.all(directoryContents.map(async (dirent) => {
         const fullPath = path.join(dirPath, dirent.name);
         if (dirent.isDirectory()) {
-            await readDirectoryRecursively(fullPath, filesMap)
+            await readDirectoryRecursively(fullPath, virtualPath, filesMap)
         } else {
 
             const encoding: BufferEncoding | undefined = ['.png', '.jpg', '.jpeg', '.ico'].includes(path.parse(fullPath).ext) ? undefined : 'utf-8'
@@ -35,7 +35,7 @@ async function readDirectoryRecursively(dirPath: string, virtualPath, filesMap: 
 
             const fullVirtualPath = fullPath.replace(dirPath, virtualPath)
 
-            filesMap.set('/'+fullVirtualPath.split(path.sep).join("/"), gzipSync(fileContents))
+            filesMap.set('/' + fullVirtualPath.split(path.sep).join("/"), gzipSync(fileContents))
         }
     }));
 
@@ -60,26 +60,26 @@ export async function createNodeServer(config: NodeServerConfig) {
     function staticFileHandler(res: NodeResponse, url: string) {
 
         try {
-        const filePath =  url
-        const ext = filePath.split('.').at(-1)
+          
+            const ext = url.split('.').at(-1)
 
-            const buffer = staticFiles.get(filePath)
+            const buffer = staticFiles.get(url)
 
-            if(!buffer){
+            if (!buffer) {
                 return res.error('Uh oh, resource not found ;(', 404)
             }
 
             const stream = new Readable({
-                read(){
+                read() {
                     this.push(buffer)
                     this.push(null)
-                }
+                },
             })
 
             const contentType = mimeTypeForFileExtension(ext as MimeType)
 
-            if(!contentType){
-                
+            if (!contentType) {
+
                 return res.error('Unsupported file extension', 400)
             }
 
