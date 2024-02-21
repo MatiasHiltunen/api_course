@@ -1,4 +1,5 @@
 import { IncomingMessage, ServerResponse } from "http"
+import { Readable } from "stream"
 
 export type ServerRequest = IncomingMessage & { params?: any, body?: any }
 
